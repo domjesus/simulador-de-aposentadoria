@@ -51,6 +51,12 @@
 <script>
 export default {
   name: "Deducoes",
+  props: {
+    deducoes: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       licencas: {
@@ -60,6 +66,25 @@ export default {
         apos2019: 0,
       },
     };
+  },
+  watch: {
+    deducoes() {
+      // this.licencas = this.deducoes;
+
+      if (this.deducoes.ate1998) {
+        this.licencas.ate1998 = this.deducoes.ate1998;
+      } else this.licencas.ate1998 = 0;
+
+      if (this.deducoes.ate2003) {
+        this.licencas.ate2003 = this.deducoes.ate2003;
+      } else this.licencas.ate2003 = 0;
+      if (this.deducoes.ate2019) {
+        this.licencas.ate2019 = this.deducoes.ate2019;
+      } else this.licencas.ate2019 = 0;
+      if (this.deducoes.apos2019) {
+        this.licencas.apos2019 = this.deducoes.apos2019;
+      } else this.licencas.apos2019 = 0;
+    },
   },
 };
 </script>

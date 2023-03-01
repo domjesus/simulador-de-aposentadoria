@@ -182,8 +182,9 @@
       ini="15/06/1984"
       fim="31/12/1989"
     />
-    <pre>{{ tempos }}</pre>
-    <Deducoes @handleDeducoes="handleDeducoes" />
+    <!-- <pre>{{ tempos }}</pre> -->
+    <!-- <pre>{{ deducoes }}</pre> -->
+    <Deducoes @handleDeducoes="handleDeducoes" :deducoes="{ ...deducoes }" />
 
     <div class="errors">
       <ErrorsComponent :errors="errors" />
@@ -291,18 +292,14 @@ export default {
         return;
       }
 
-      // if (qtdeDias == 0) {
       this.total_tempo_em_dias += parseInt(this.deducoes[periodo]);
       this.tempos[periodo] += parseInt(this.deducoes[periodo]);
       this.deducoes[periodo] = qtdeDias;
-      // return;
-      // }
 
       this.total_tempo_em_dias -= qtdeDias;
+
       this.deducoes[periodo] = qtdeDias;
       this.tempos[periodo] -= qtdeDias;
-
-      // console.log("Valor dedução: ", qtdeDias, periodo);
     },
     somaTempo(periodo, days, somar = true) {
       if (somar) {
@@ -310,19 +307,48 @@ export default {
         return;
       }
 
-      this.tempos[dateReference] -= days;
+      this.tempos[periodo] += parseInt(this.deducoes[periodo]);
+      this.total_tempo_em_dias += parseInt(this.deducoes[periodo]);
+      // console.log("Deducoes: ", this.deducoes[periodo]);
+      this.tempos[periodo] -= parseInt(days);
     },
-    deletePeriodo(date_ini, date_fim) {
-      console.log(date_ini, date_fim);
+    deletePeriodo(data_ini, data_fim) {
+      // console.log(data_ini, data_fim);
       //PEGAR A DATA INI E FIM, CALCULAR QTDE DE DIAS E SOMAR NO ARRAY TEMPOS.
 
       let index_of_item = null;
 
       this.todosPeriodos.forEach((date, i) => {
-        if (date.data_ini === date_ini) index_of_item = i; //SABER QUAL INDEX EXCLUIR
+        if (date.data_ini === data_ini) index_of_item = i; //SABER QUAL INDEX EXCLUIR
       });
 
       this.todosPeriodos.splice(index_of_item, 1);
+      this.consolidaTempo({ data_ini, data_fim }, false);
+      this.clearDeducoes(data_ini);
+    },
+    clearDeducoes(data_ini) {
+      const data_ini_antes_de_1998 = this.whereDateIs(data_ini) === "ate1998";
+      const data_ini_antes_de_2003 = this.whereDateIs(data_ini) === "ate2003";
+      const data_ini_antes_de_2019 = this.whereDateIs(data_ini) === "ate2019";
+      const data_ini_apos_2019 = this.whereDateIs(data_ini) === "apos2019";
+
+      if (data_ini_antes_de_1998) {
+        this.deducoes["ate1998"] = 0;
+      }
+      if (data_ini_antes_de_2003) {
+        this.deducoes["ate2003"] = 0;
+        f;
+      }
+      if (data_ini_antes_de_2019) {
+        this.deducoes["ate2019"] = 0;
+      }
+      if (data_ini_apos_2019) {
+        this.deducoes["apos2019"] = 0;
+      }
+
+      this.errors.push(
+        "Atenção! Lance novamente os dias de dedução deste período!"
+      );
     },
     whereDateIs(date) {
       if (moment(date, "DD/MM/YYYY").isSameOrBefore("1998-12-16"))
@@ -350,7 +376,7 @@ export default {
     calcDifApos2019(date) {
       return diffDateInDays(moment("2019-11-13"), moment(date, "DD/MM/YYYY"));
     },
-    consolidaTempo({ data_ini, data_fim }) {
+    consolidaTempo({ data_ini, data_fim }, somar = true) {
       // console.log("Data Ini: ", data_ini, "Data Fim: ", data_fim);
       const d1 = this.whereDateIs(data_ini);
       const d2 = this.whereDateIs(data_fim);
@@ -374,7 +400,7 @@ export default {
       if (data_fim_antes_de_1998) {
         //SOMA TUDO NO ATE1998
         const dif_date = diffDateInDays(data_ini, data_fim);
-        this.somaTempo("ate1998", dif_date);
+        this.somaTempo("ate1998", dif_date, somar);
         // this.tempos.ate1998 += dif_date;
       }
 
@@ -385,17 +411,14 @@ export default {
           const ate1998 = this.calcDifAte1998(data_ini);
           const ate2003 = this.calcDifAte2003("17/12/1998");
 
-          this.somaTempo("ate1998", ate1998);
-          this.somaTempo("ate2003", ate2003);
-
-          // this.tempos.ate1998 += ate1998;
-          // this.tempos.ate2003 += ate2003;
+          this.somaTempo("ate1998", ate1998, somar);
+          this.somaTempo("ate2003", ate2003, somar);
         } else {
           const dif_date_ate2003 = diffDateInDays(
             moment(data_ini, "DD/MM/YYYY"),
             moment(data_fim, "DD/MM/YYYY")
           ); //CALCULA A DIFERENÇA ATE 16/12/1998
-          this.somaTempo("ate2003", dif_date_ate2003);
+          this.somaTempo("ate2003", dif_date_ate2003, somar);
           // this.tempos.ate2003 += dif_date_ate2003;
         }
       }
@@ -408,9 +431,9 @@ export default {
           const ate2003 = this.calcDifAte2003("17/12/1998");
           const ate2019 = this.calcDifAte2019("01/01/2004");
 
-          this.somaTempo("ate1998", ate1998);
-          this.somaTempo("ate2003", ate2003);
-          this.somaTempo("ate2019", ate2019);
+          this.somaTempo("ate1998", ate1998, somar);
+          this.somaTempo("ate2003", ate2003, somar);
+          this.somaTempo("ate2019", ate2019, somar);
         } else if (
           moment(data_ini, "DD/MM/YYYY").isAfter("1998-12-16") &&
           data_ini_apos_2003
@@ -418,11 +441,11 @@ export default {
           const ate2003 = this.calcDifAte2003("17/12/1998");
           const ate2019 = this.calcDifAte2019("01/01/2004");
 
-          this.somaTempo("ate2003", ate2003);
-          this.somaTempo("ate2019", ate2019);
+          this.somaTempo("ate2003", ate2003, somar);
+          this.somaTempo("ate2019", ate2019, somar);
         } else {
           const ate2019 = this.calcDifAte2019("01/01/2004");
-          this.somaTempo("ate2019", ate2019);
+          this.somaTempo("ate2019", ate2019, somar);
         }
       }
 
@@ -434,24 +457,24 @@ export default {
           const ate2019 = this.calcDifAte2019("01/01/2004");
           const apos2019 = this.calcDifApos2019(data_fim);
 
-          this.somaTempo("ate1998", ate1998);
-          this.somaTempo("ate2003", ate2003);
-          this.somaTempo("ate2019", ate2019);
-          this.somaTempo("apos2019", apos2019);
+          this.somaTempo("ate1998", ate1998, somar);
+          this.somaTempo("ate2003", ate2003, somar);
+          this.somaTempo("ate2019", ate2019, somar);
+          this.somaTempo("apos2019", apos2019, somar);
         } else if (data_ini_antes_de_2003) {
           const ate2003 = this.calcDifAte2003("17/12/1998");
           const ate2019 = this.calcDifAte2019("01/01/2004");
           const apos2019 = this.calcDifApos2019(data_fim);
 
-          this.somaTempo("ate2003", ate2003);
-          this.somaTempo("ate2019", ate2019);
-          this.somaTempo("apos2019", apos2019);
+          this.somaTempo("ate2003", ate2003, somar);
+          this.somaTempo("ate2019", ate2019, somar);
+          this.somaTempo("apos2019", apos2019, somar);
         } else if (data_ini_antes_de_2019) {
           const ate2019 = this.calcDifAte2019(data_ini);
           const apos2019 = this.calcDifApos2019(data_fim);
 
-          this.somaTempo("ate2019", ate2019);
-          this.somaTempo("apos2019", apos2019);
+          this.somaTempo("ate2019", ate2019, somar);
+          this.somaTempo("apos2019", apos2019, somar);
         } else {
           //HA TEMPOS SOMENTE APOS 12/11/2019
 
@@ -460,7 +483,8 @@ export default {
             moment(data_fim, "DD/MM/YYYY")
           );
 
-          this.tempos.apos2019 += dif_date_apos2019;
+          this.somaTempo("apos2019", dif_date_apos2019, somar);
+          // this.tempos.apos2019 += dif_date_apos2019;
         }
       }
     },
@@ -473,6 +497,11 @@ export default {
     },
     totalizaTempo(tempo, soma) {
       // console.log("Tempo: ", tempo, soma);
+      if (!soma && this.total_tempo_em_dias - tempo < 0) {
+        this.total_tempo_em_dias = 0;
+        return;
+      }
+
       this.total_tempo_em_dias =
         soma === true
           ? (this.total_tempo_em_dias += tempo)

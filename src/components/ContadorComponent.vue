@@ -33,7 +33,7 @@
           <thead>
             <tr>
               <th>PERIODO:</th>
-              <th>LICENÇA</th>
+              <!-- <th>LICENÇA</th> -->
               <th>DIAS</th>
               <th>EXTENSO</th>
               <th class="actions">AÇÕES</th>
@@ -50,9 +50,9 @@
                 {{ i + 1 }}: {{ trataData(datas_ini[i]) }} -
                 {{ trataData(datas_fim[i]) }}
               </td>
-              <td class="detail_licences" @click="detailLicences(i)">
+              <!-- <td class="detail_licences" @click="detailLicences(i)">
                 {{ licencas[i] ? licencas[i].sum : "" }}
-              </td>
+              </td> -->
               <td class="">
                 {{
                   !!licencas[i]
@@ -590,5 +590,6 @@ th {
 table {
   /* margin-left: auto; */
   width: 90%;
+  /* border: 1px solid black; */
 }
 </style>
